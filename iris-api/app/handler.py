@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from app.base_handler import BaseApiHandler
 from app.settings import MAX_MODEL_THREAD_POOL
 from . import GA
+from . import prepare_data
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -53,7 +54,7 @@ class IrisPredictionHandler(BaseApiHandler):
         results = yield self._blocking_predict(X)
         self.respond(results)
 
-class GAPredictionHandler(BaseApiHandler):
+class TMDPredictionHandler(BaseApiHandler):
 
     _thread_pool = ThreadPoolExecutor(max_workers=MAX_MODEL_THREAD_POOL)
 
@@ -62,7 +63,7 @@ class GAPredictionHandler(BaseApiHandler):
         #call the algorithm
         result = []
         for data in X:
-            result.append(self.result(data))
+            result.append(self.TMDpreditor(data))
         return result
 
 
@@ -87,7 +88,7 @@ class GAPredictionHandler(BaseApiHandler):
         self.respond(results)
 
 
-    def result(self,data):
+    def TMDpreditor(self,data):
 
         buyer = data["buyer"]
         seller = data["seller"]
@@ -99,3 +100,35 @@ class GAPredictionHandler(BaseApiHandler):
 
         result = GA.GAalgorithm(buyer, seller,termination,population_size,crossover, mutationRate)
         return result
+
+class TMDPrepareDataHandler(BaseApiHandler):
+
+    _thread_pool = ThreadPoolExecutor(max_workers=MAX_MODEL_THREAD_POOL)
+
+    @concurrent.run_on_executor(executor='_thread_pool')
+    def _blocking_prepare_data(self,X):
+        #prepare the data 
+        result = []
+        for data in X:
+            result.append(prepare_data.filter_search(self,data))
+        return result
+
+
+    @gen.coroutine
+    def TMDprepare(self, data):
+        if type(data) == dict:
+            data = [data]
+        X = []
+        for item in data:
+            record = {
+                "generic":item.get("generic"),
+                "form":item.get("form"),
+                "strength":item.get("strength"),
+                "package":item.get("package"),
+                "orderstatus":item.get("orderstatus"),
+                "startdate":item.get("startdate"),
+                "enddate":item.get("enddate"),
+            }
+            X.append(record)
+        results = yield self._blocking_prepare_data(X)
+        self.respond(results) 

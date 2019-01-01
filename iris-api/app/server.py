@@ -11,7 +11,7 @@ from tornado.options import options
 from sklearn.externals import joblib
 
 from app.settings import MODEL_DIR
-from app.handler import IndexHandler, IrisPredictionHandler, GAPredictionHandler
+from app.handler import IndexHandler, IrisPredictionHandler, TMDPredictionHandler, TMDPrepareDataHandler
 
 
 MODELS = {}
@@ -43,7 +43,8 @@ def main():
         (r"/$", IndexHandler),
         (r"/api/iris/(?P<action>[a-zA-Z]+)?", IrisPredictionHandler,
             dict(model=MODELS["iris"])),
-        (r"/api/ga/(?P<action>[a-zA-Z]+)?", GAPredictionHandler)
+        (r"/api/ga/(?P<action>[a-zA-Z]+)?", TMDPredictionHandler),
+        (r"/api/tmd/(?P<action>[a-zA-Z]+)?", TMDPrepareDataHandler),
     ]
 
     # Create Tornado application
